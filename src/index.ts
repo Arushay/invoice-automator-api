@@ -8,7 +8,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(express.json());
+// app.use(express.json());
+app.use(express.static('public')); // Serves the HTML file
 
 // 1. SETUP MULTER (Stores file in memory temporarily)
 const upload = multer({ storage: multer.memoryStorage() });
@@ -24,7 +25,7 @@ const fakeAIReader = () => {
   };
 };
 
-// 3. THE UPLOAD ENDPOINT (This was missing!)
+// 3. THE UPLOAD ENDPOINT 
 app.post('/api/upload-invoice', upload.single('invoice'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
