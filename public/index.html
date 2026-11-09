@@ -1,98 +1,167 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Invoice Automator</title>
     <style>
-        body { font-family: system-ui, sans-serif; padding: 2rem; background: #f4f4f5; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f8f8; }
-        button { background: #7c3aed; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; }
-        button:hover { background: #5e2a9c; }
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 2rem;
+        background: #f4f4f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      th {
+        background: #f8f8f8;
+      }
+      button {
+        background: #7c3aed;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #5e2a9c;
+      }
+      /* Make it mobile friendly */
+      @media (max-width: 600px) {
+        table,
+        thead,
+        tbody,
+        th,
+        td,
+        tr {
+          display: block;
+        }
+        thead tr {
+          position: absolute;
+          top: -9999px;
+          left: -9999px;
+        }
+        tr {
+          margin-bottom: 1rem;
+          border: 1px solid #ddd;
+          border-radius: 0.5rem;
+          padding: 0.5rem;
+          background: #fff;
+        }
+        td {
+          border: none;
+          position: relative;
+          padding-left: 50%;
+          text-align: right;
+        }
+        td:before {
+          position: absolute;
+          left: 0;
+          width: 45%;
+          padding-left: 0.5rem;
+          text-align: left;
+          font-weight: bold;
+          content: attr(data-label);
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🤖 Invoice Automator API</h1>
+      <p>This UI is connected to your Node.js + PostgreSQL backend.</p>
 
-<div class="container">
-    <h1>🤖 Invoice Automator API</h1>
-    <p>This UI is connected to your Node.js + PostgreSQL backend.</p>
-    
-    <div style="margin-bottom: 2rem;">
+      <div style="margin-bottom: 2rem">
         <input type="file" id="fileInput" />
         <button onclick="uploadInvoice()">Upload Invoice</button>
-    </div>
+      </div>
 
-    <h2>Recent Invoices</h2>
-    <table>
+      <h2>Recent Invoices</h2>
+      <table>
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Supplier</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
+          <tr>
+            <th>ID</th>
+            <th>Supplier</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
         </thead>
         <tbody id="invoiceTable">
-            <!-- Data will be loaded here -->
+          <!-- Data will be loaded here -->
         </tbody>
-    </table>
-</div>
+      </table>
+    </div>
 
-<script>
-    // 1. Fetch and display invoices
-    async function loadInvoices() {
-        const response = await fetch('/api/invoices');
+    <script>
+      // 1. Fetch and display invoices
+      async function loadInvoices() {
+        const response = await fetch("/api/invoices");
         const data = await response.json();
-        
-        const table = document.getElementById('invoiceTable');
-        table.innerHTML = ''; // Clear table
 
-        data.invoices.forEach(invoice => {
-            table.innerHTML += `
+        const table = document.getElementById("invoiceTable");
+        table.innerHTML = ""; // Clear table
+
+        data.invoices.forEach((invoice) => {
+          table.innerHTML += `
                 <tr>
-                    <td>${invoice.id}</td>
-                    <td>${invoice.supplier_name}</td>
-                    <td>€${invoice.amount}</td>
-                    <td><strong>${invoice.status}</strong></td>
-                    <td>
+                    <td data-label="ID">${invoice.id}</td>
+                    <td data-label="Supplier">${invoice.supplier_name}</td>
+                    <td data-label="Amount">€${invoice.amount}</td>
+                    <td data-label="Status"><strong>${invoice.status}</strong></td>
+                    <td data-label="Action">
                         <button onclick="syncInvoice(${invoice.id})">Sync to Exact</button>
                     </td>
                 </tr>
             `;
         });
-    }
+      }
 
-    // 2. Upload a file
-    async function uploadInvoice() {
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput.files.length === 0) return alert('Choose a file first!');
+      // 2. Upload a file
+      async function uploadInvoice() {
+        const fileInput = document.getElementById("fileInput");
+        if (fileInput.files.length === 0) return alert("Choose a file first!");
 
         const formData = new FormData();
-        formData.append('invoice', fileInput.files[0]);
+        formData.append("invoice", fileInput.files[0]);
 
-        await fetch('/api/upload-invoice', {
-            method: 'POST',
-            body: formData
+        await fetch("/api/upload-invoice", {
+          method: "POST",
+          body: formData,
         });
 
-        alert('Invoice Uploaded!');
+        alert("Invoice Uploaded!");
         loadInvoices(); // Refresh the table
-    }
+      }
 
-    // 3. Sync invoice to Exact (Mock)
-    async function syncInvoice(id) {
-        await fetch(`/api/invoices/${id}/sync`, { method: 'POST' });
+      // 3. Sync invoice to Exact (Mock)
+      async function syncInvoice(id) {
+        await fetch(`/api/invoices/${id}/sync`, { method: "POST" });
         loadInvoices(); // Refresh the table
-    }
+      }
 
-    // Load invoices when page opens
-    loadInvoices();
-</script>
-
-</body>
+      // Load invoices when page opens
+      loadInvoices();
+    </script>
+  </body>
 </html>
